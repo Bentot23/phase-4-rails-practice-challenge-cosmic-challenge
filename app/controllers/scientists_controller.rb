@@ -1,14 +1,17 @@
 class ScientistsController < ApplicationController
+rescue_from ActiveRecord::RecordNotFound, with: :not_found
+rescue_from ActiveRecord::RecordInvalid, with: :invalid
 
     before_action :one_scientist, only: [:show, :update, :destroy]
 
 
     def index
-        render json: Scientist.all
+        render json: Scientist.all, status: :ok
     end
 
     def show
-        render json: @scientist, serializer: ScientistPlanetSerializer
+        # scientist = Scientist.find(params[:id])
+        render json: @scientist, serializer: ScientistPlanetSerializer, status: :ok
     end
 
     def create
@@ -17,11 +20,13 @@ class ScientistsController < ApplicationController
     end
 
     def update
+        # scientist = Scientist.find(params[:id])
         @scientist.update!(scientist_params_update)
         render json: @scientist, status: :accepted
     end
 
     def destroy
+        # scientist = Scientist.find(params[:id])
         @scientist.destroy
         head :no_content
     end
@@ -29,7 +34,7 @@ class ScientistsController < ApplicationController
     private
 
     def one_scientist
-        @scientist = Scientists.find(params[:id])
+        @scientist = Scientist.find(params[:id])
     end
 
     def scientist_params
@@ -38,5 +43,13 @@ class ScientistsController < ApplicationController
 
     def scientist_params_update
         params.permit(:name, :field_of_study, :avatar)
+    end
+
+    def not_found
+        render json: {"error": "Scientist not found"}
+    end
+
+    def invalid
+        render json: {"errors": ["validation errors"]}
     end
 end
